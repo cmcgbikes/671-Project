@@ -21,16 +21,8 @@ library(ggplot2)
 library(tidyr)
 
 
-# Write query for "geospatial" and "geolocation"
-query <- with_qfuns(
-  or(
-    text_phrase(patent_title = "geospatial"),
-    text_phrase(patent_abstract = "geospatial"),
-    text_phrase(patent_abstract = "geolocation")
-  )
-)
 
-
+# Write query for "geospatial"
 query <- with_qfuns(
   or(
     text_phrase(patent_title = "geospatial"),
@@ -430,66 +422,6 @@ top_patent_cpc_table <- datatable(
 top_patent_cpc_table
 
 
-# ==============================================================================
-
-
-# MAKE A TABLE THAT LISTS THE PATENTS THAT CITE THE TOP MOST CITED PATENT BY
-# PALANTIR, INCLUDE ASSIGNEE ORG NAME TO SEE WHICH COMPANIES ARE INFLUENCED.
-# ARE ANY OF THESE ORGS BIG NAMES?
-
-# Top most cited patent with it's citations; take a look to see what to join
-clean_top_most_cited_patent
-
-# Isolate the list of patent numbers that cite the top most cited patent
-top_patent_citations <- select(clean_top_most_cited_patent, to)
-top_patent_citations
-
-# Rename the "to" column to patent_number to pull in assignee org name
-top_patent_citations <- rename_all(top_patent_citations, recode, "to" = "patent_number")
-top_patent_citations
-
-# Join with assignees_full
-top_patent_citations <- left_join(top_patent_citations, assignees, by="patent_number")
-top_patent_citations
-
-# Select patent_number and assignee_org columns
-top_patent_citations <- select(top_patent_citations, patent_number, assignee_organization)
-top_patent_citations
-
-# Reorder the assignees for plotting (based on n rather than alphabetical)
-top_patent_citations <- arrange(top_patent_citations, desc(assignee_organization))
-top_patent_citations
-
-# Drop na's >> they are assigned to individuals, just looking at the companies
-top_patent_citations <- na.omit(top_patent_citations)
-top_patent_citations
-
-# Join with patents for patent title
-top_patent_citations <- left_join(top_patent_citations, patents, by="patent_number")
-top_patent_citations
-
-# Select patent_number, patent_title and assignee_org columns
-top_patent_citations <- select(top_patent_citations, patent_number, patent_title, assignee_organization)
-top_patent_citations
-
-
-
-
-# Create datatable
-orgs_cite_top_cited_patent <- datatable(
-  data = top_patent_citations,
-  rownames = FALSE,
-  colnames = c(
-    "Patent Number", "Patent Title", "Assignee Organization"),
-  caption = htmltools::tags$caption(
-    style = 'caption-side: top; text-align: center; font-style: italic;',
-    "Assignee Organizations That Cite Palantir Patent #8,799,799"
-  ),
-  options = list(pageLength = 10)
-)
-
-orgs_cite_top_cited_patent
-
 
 # ==============================================================================
 # ==============================================================================
@@ -654,6 +586,68 @@ clean_top_most_cited_patent_net
 
 plot(clean_top_most_cited_patent_net,
      main="Top Most Cited Patent")
+
+
+
+# ==============================================================================
+
+
+# MAKE A TABLE THAT LISTS THE PATENTS THAT CITE THE TOP MOST CITED PATENT BY
+# PALANTIR, INCLUDE ASSIGNEE ORG NAME TO SEE WHICH COMPANIES ARE INFLUENCED.
+# ARE ANY OF THESE ORGS BIG NAMES?
+
+# Top most cited patent with it's citations; take a look to see what to join
+clean_top_most_cited_patent
+
+# Isolate the list of patent numbers that cite the top most cited patent
+top_patent_citations <- select(clean_top_most_cited_patent, to)
+top_patent_citations
+
+# Rename the "to" column to patent_number to pull in assignee org name
+top_patent_citations <- rename_all(top_patent_citations, recode, "to" = "patent_number")
+top_patent_citations
+
+# Join with assignees_full
+top_patent_citations <- left_join(top_patent_citations, assignees, by="patent_number")
+top_patent_citations
+
+# Select patent_number and assignee_org columns
+top_patent_citations <- select(top_patent_citations, patent_number, assignee_organization)
+top_patent_citations
+
+# Reorder the assignees for plotting (based on n rather than alphabetical)
+top_patent_citations <- arrange(top_patent_citations, desc(assignee_organization))
+top_patent_citations
+
+# Drop na's >> they are assigned to individuals, just looking at the companies
+top_patent_citations <- na.omit(top_patent_citations)
+top_patent_citations
+
+# Join with patents for patent title
+top_patent_citations <- left_join(top_patent_citations, patents, by="patent_number")
+top_patent_citations
+
+# Select patent_number, patent_title and assignee_org columns
+top_patent_citations <- select(top_patent_citations, patent_number, patent_title, assignee_organization)
+top_patent_citations
+
+
+
+
+# Create datatable
+orgs_cite_top_cited_patent <- datatable(
+  data = top_patent_citations,
+  rownames = FALSE,
+  colnames = c(
+    "Patent Number", "Patent Title", "Assignee Organization"),
+  caption = htmltools::tags$caption(
+    style = 'caption-side: top; text-align: center; font-style: italic;',
+    "Assignee Organizations That Cite Palantir Patent #8,799,799"
+  ),
+  options = list(pageLength = 10)
+)
+
+orgs_cite_top_cited_patent
 
 
 # ==============================================================================
